@@ -7,7 +7,7 @@ from twisted.application.service import IServiceCollection
 from twisted.web import resource, static
 
 from scrapyd.interfaces import IEggStorage, IPoller, ISpiderScheduler
-from scrapyd.jobstorage import job_items_url, job_log_url
+from scrapyd.jobstorage import job_items_url, job_log_url, job_log_url_utf8
 
 
 class PrefixHeaderMixin:
@@ -141,9 +141,9 @@ class Jobs(PrefixHeaderMixin, resource.Resource):
 
     header_cols = [
         'Project', 'Spider',
-        'Job', 'PID',
+        'Job', 'PID', "args",
         'Start', 'Runtime', 'Finish',
-        'Log', 'Items',
+        'Log', "UTF8", 'Items',
         'Cancel',
     ]
 
@@ -170,35 +170,35 @@ class Jobs(PrefixHeaderMixin, resource.Resource):
 
     def prep_doc(self):
         return (
-            '<html>'
-            '<head>'
-            '<title>Scrapyd</title>'
-            '<style type="text/css">' + self.gen_css() + '</style>'
-            '</head>'
-            '<body><h1>Jobs</h1>'
-            '<p><a href="./">Go up</a></p>'
-            + self.prep_table() +
-            '</body>'
-            '</html>'
+                '<html>'
+                '<head>'
+                '<title>Scrapyd</title>'
+                '<style type="text/css">' + self.gen_css() + '</style>'
+                                                             '</head>'
+                                                             '<body><h1>Jobs</h1>'
+                                                             '<p><a href="./">Go up</a></p>'
+                + self.prep_table() +
+                '</body>'
+                '</html>'
         )
 
     def prep_table(self):
         return (
-            '<table id="jobs" border="1">'
-            '<thead>' + self.prep_row(self.header_cols) + '</thead>'
-            '<tbody>'
-            + '<tr><th colspan="%d">Pending</th></tr>' % len(self.header_cols)
-            + self.prep_tab_pending() +
-            '</tbody>'
-            '<tbody>'
-            + '<tr><th colspan="%d">Running</th></tr>' % len(self.header_cols)
-            + self.prep_tab_running() +
-            '</tbody>'
-            '<tbody>'
-            + '<tr><th colspan="%d">Finished</th></tr>' % len(self.header_cols)
-            + self.prep_tab_finished() +
-            '</tbody>'
-            '</table>'
+                '<table id="jobs" border="1">'
+                '<thead>' + self.prep_row(self.header_cols) + '</thead>'
+                                                              '<tbody>'
+                + '<tr><th colspan="%d">Pending</th></tr>' % len(self.header_cols)
+                + self.prep_tab_pending() +
+                '</tbody>'
+                '<tbody>'
+                + '<tr><th colspan="%d">Running</th></tr>' % len(self.header_cols)
+                + self.prep_tab_running() +
+                '</tbody>'
+                '<tbody>'
+                + '<tr><th colspan="%d">Finished</th></tr>' % len(self.header_cols)
+                + self.prep_tab_finished() +
+                '</tbody>'
+                '</table>'
         )
 
     def prep_tab_pending(self):
@@ -214,15 +214,18 @@ class Jobs(PrefixHeaderMixin, resource.Resource):
         )
 
     def prep_tab_running(self):
+        print(self.root.launcher.processes.values())
         return '\n'.join(
             self.prep_row({
                 "Project": p.project,
                 "Spider": p.spider,
                 "Job": p.job,
                 "PID": p.pid,
+                "args": p.args,
                 "Start": microsec_trunc(p.start_time),
                 "Runtime": microsec_trunc(datetime.now() - p.start_time),
                 "Log": f'<a href="{self.base_path}{job_log_url(p)}">Log</a>',
+                "UTF8": f'<a href="{self.base_path}{job_log_url_utf8(p)}">UTF8</a>',
                 "Items": f'<a href="{self.base_path}{job_items_url(p)}">Items</a>',
                 "Cancel": self.cancel_button(project=p.project, jobid=p.job, base_path=self.base_path),
             })

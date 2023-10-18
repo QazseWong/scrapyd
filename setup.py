@@ -9,7 +9,7 @@ with open(os.path.join(os.path.dirname(__file__), 'scrapyd', 'VERSION')) as f:
     version = f.read().strip()
 
 setup(
-    name='scrapyd',
+    name='scrapyd-aqa',
     version=version,
     author='Scrapy developers',
     author_email='info@scrapy.org',

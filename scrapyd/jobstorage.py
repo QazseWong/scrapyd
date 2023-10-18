@@ -11,6 +11,10 @@ def job_log_url(job):
     return f"/logs/{job.project}/{job.spider}/{job.job}.log"
 
 
+def job_log_url_utf8(job):
+    return f"/logs/UTF-8.html?project={job.project}&spider={job.spider}&job={job.job}"
+
+
 def job_items_url(job):
     return f"/items/{job.project}/{job.spider}/{job.job}.jl"
 
